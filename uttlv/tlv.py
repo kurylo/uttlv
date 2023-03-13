@@ -9,6 +9,7 @@ from .encoder import (
     BytesEncoder,
     DefaultEncoder,
     IntEncoder,
+    FloatEncoder,
     NestedEncoder,
     Utf8Encoder,
 )
@@ -313,6 +314,7 @@ class TLVIterator:
 ALLOWED_TYPES = {
     TLV: DefaultEncoder,
     int: IntEncoder,
+    float: FloatEncoder,
     bytes: BytesEncoder,
     str: Utf8Encoder,
 }
