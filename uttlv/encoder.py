@@ -36,11 +36,27 @@ class IntEncoder(DefaultEncoder):
     def default(self, obj):
         if isinstance(obj, int):
             return obj.to_bytes(4, byteorder=self.endian)
+        if isinstance(obj, list) and isinstance(obj[0], int):
+            count = len(obj)
+            if (self.endian=="big"):
+                fmt = f'>{count}i'
+            elif (self.endian=="little"):
+                fmt = f'<{count}i'
+            return struct.pack(fmt, *obj)
+
         return super().default(obj)
 
     def parse(self, obj, _cls):
-        return int.from_bytes(obj, byteorder=self.endian)
+        count = len(obj) // 4
+        if (self.endian=="big"):
+            fmt = f'>{count}i'
+        elif (self.endian=="little"):
+            fmt = f'<{count}i'
 
+        ret = list(struct.unpack(fmt, obj))
+        if len(ret) == 1:
+            return ret[0]
+        return ret
 
 class FloatEncoder(DefaultEncoder):
     def __init__(self, endian="big"):

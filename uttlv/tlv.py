@@ -156,12 +156,15 @@ class TLV:
             raise TypeError("Invalid key format.")
         return True
 
-    def check_value(self, value: Any[TLV, str, int, bytes]) -> bool:
+    def check_value(self, value: Any[TLV, str, float, int, bytes]) -> bool:
         """Check if value class is a valid one.
 
         :args:
             value: value to be inserted.
         """
+        if isinstance(value, list):
+            value = value[0]
+
         if not any(isinstance(value, t) for t in ALLOWED_TYPES):
             raise TypeError(f"Invalid value type format {type(value)}.")
         return True
@@ -169,7 +172,10 @@ class TLV:
     def get_lengths(self):
         lengths={}
         for tag, value in self._items.items():
-            encoder = ALLOWED_TYPES.get(type(value))
+            if isinstance(value, list):
+                encoder = ALLOWED_TYPES.get(type(value[0]))
+            else:
+                encoder = ALLOWED_TYPES.get(type(value))
             formatted_value = encoder().default(value)
             lengths[tag] = len(formatted_value)
         return lengths
@@ -215,7 +221,10 @@ class TLV:
         """Print a tree view of the object."""
         tree_str = "" if offset == 0 else "\r\n"
         for tag, value in self._items.items():
-            encoder = ALLOWED_TYPES.get(type(value))
+            if isinstance(value, list):
+                encoder = ALLOWED_TYPES.get(type(value[0]))
+            else:
+                encoder = ALLOWED_TYPES.get(type(value))
             encoded_value = encoder().to_string(value, offset, use_names)
             # Create line
             encoded_tag = str(
@@ -226,7 +235,7 @@ class TLV:
                 name = tag_map.get(TLV.Config.Name, None)
                 encoded_tag = name or encoded_tag
 
-            if(len(encoded_value) > 300):
+            if(len(encoded_value) > 1000):
                 encoded_value = "*trimmed*"
 
             if show_size:
